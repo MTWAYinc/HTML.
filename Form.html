@@ -12,6 +12,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MTWAY CLUB · Private Membership Application</title>
+<meta name="description" content="Apply for MTWAY CLUB membership, a shared-risk performance marketing partnership for premium B2C brands generating over $500K annually.">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -218,7 +219,7 @@ nav.scrolled {
 @media (max-width: 768px) {
   html { cursor: auto; }
   #cur, #cur-ring { display: none; }
-  .field-input, .btn-submit, .checkbox-label-wrap, .checkbox-box, a { cursor: pointer; }
+  .field-input, .btn-submit, .checkbox-label-wrap, .checkbox-box, .pill-option, a { cursor: pointer; }
   .field-input { cursor: text; }
   .page-wrap { padding: 120px 18px 80px; }
   .form-header { margin-bottom: 44px; }
@@ -299,6 +300,33 @@ nav.scrolled {
 }
 
 .field-error.show { display: block; }
+
+/* BUDGET PILLS */
+.pill-group { display: flex; flex-wrap: wrap; gap: 10px; }
+.pill-option {
+  flex: 1 1 calc(50% - 5px);
+  min-width: 140px;
+  text-align: center;
+  padding: 14px 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(230,230,230,.85);
+  cursor: none;
+  transition: border-color .3s, background .3s, color .3s;
+  user-select: none;
+}
+.pill-option:hover { border-color: rgba(200,200,200,.3); background: rgba(255,255,255,.05); }
+.pill-option.selected {
+  background: rgba(200,200,200,.15);
+  border-color: rgba(200,200,200,.6);
+  color: var(--silver-light);
+}
+.pill-group.error .pill-option { border-color: rgba(220,100,100,.4); }
 
 /* CHECKBOX */
 .checkbox-group {
@@ -734,6 +762,17 @@ footer {
         <div class="field-error" id="err-website">A valid website URL is required</div>
       </div>
 
+      <div class="field-group" style="margin-bottom:36px;">
+        <div class="field-label">Monthly Ad Budget <span>*</span></div>
+        <div class="pill-group" id="budgetGroup">
+          <div class="pill-option" data-value="&lt;$10K/mo" onclick="selectBudget(this)">&lt;$10K/mo</div>
+          <div class="pill-option" data-value="$10K-$25K/mo" onclick="selectBudget(this)">$10K-$25K/mo</div>
+          <div class="pill-option" data-value="$25K-$75K/mo" onclick="selectBudget(this)">$25K-$75K/mo</div>
+          <div class="pill-option" data-value="$75K+/mo" onclick="selectBudget(this)">$75K+/mo</div>
+        </div>
+        <div class="field-error" id="err-budget">Select your monthly ad budget range</div>
+      </div>
+
       <div class="form-divider"></div>
 
       <div class="checkbox-group">
@@ -837,6 +876,16 @@ document.querySelectorAll('a,button,.checkbox-label-wrap,.field-input').forEach(
 const nav=document.getElementById('nav');
 window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>60));
 
+// ── Budget pill selector
+let selectedBudget = null;
+function selectBudget(el) {
+  document.querySelectorAll('#budgetGroup .pill-option').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBudget = el.dataset.value;
+  document.getElementById('budgetGroup').classList.remove('error');
+  document.getElementById('err-budget').classList.remove('show');
+}
+
 // ── Checkbox toggle
 let consentChecked = false;
 function toggleCheckbox() {
@@ -884,6 +933,12 @@ function handleSubmit() {
     }
   });
 
+  if (!selectedBudget) {
+    document.getElementById('budgetGroup').classList.add('error');
+    document.getElementById('err-budget').classList.add('show');
+    valid = false;
+  }
+
   const consent = document.getElementById('consent');
   const consentLabel = document.getElementById('consentLabel');
   if (!consent.checked) {
@@ -905,26 +960,18 @@ function handleSubmit() {
   let website = document.getElementById('website').value.trim();
   if (website && !/^https?:\/\//i.test(website)) website = 'https://' + website;
 
-  // ── Airtable
-  const AIRTABLE_TOKEN = 'patwRij92pkuNSMXO.4ae5ac4779e43f97bf6760d87006c66c70efc60d774331650c0a1b79a867376c';
-  const AIRTABLE_URL = 'https://api.airtable.com/v0/app1fk9xNGcMnVZnl/tblyI8a4BtV9ZQDIP';
-
-  fetch(AIRTABLE_URL, {
+  // ── Submit via server-side proxy (token lives in a Vercel env var, never in this file)
+  fetch('/api/submit-form', {
     method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      typecast: true,
-      fields: {
-        'Full Name': document.getElementById('fullName').value.trim(),
-        'Company':   document.getElementById('company').value.trim(),
-        'Email':     document.getElementById('email').value.trim(),
-        'Phone':     document.getElementById('phone').value.trim(),
-        'Website':   website,
-        'Consent':   true
-      }
+      fullName: document.getElementById('fullName').value.trim(),
+      company:  document.getElementById('company').value.trim(),
+      email:    document.getElementById('email').value.trim(),
+      phone:    document.getElementById('phone').value.trim(),
+      website:  website,
+      budget:   selectedBudget,
+      consent:  true
     })
   })
   .then(res => {

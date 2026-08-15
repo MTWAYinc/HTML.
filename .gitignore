@@ -1,0 +1,18 @@
+.env
+*/data/
+*/logs/
+__pycache__/
+*.pyc
+node_modules/
+.vercel/
+
+# Internal automation agents — never belongs in the website repo
+scoutclub/
+sendclub/
+allianceclub/
+
+# Real lead data — never belongs in git, public or private
+*.xlsx
+
+# Internal business documents, not part of the site
+*.pdf

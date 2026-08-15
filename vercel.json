@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/score.js": { "maxDuration": 20 },
+    "api/lead.js": { "maxDuration": 10 },
+    "api/submit-form.js": { "maxDuration": 10 }
+  }
+}
