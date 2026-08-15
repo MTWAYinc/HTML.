@@ -1,4 +1,5 @@
 const { createRecord } = require("./_lib/airtable");
+const { sendReportEmail } = require("./_lib/email");
 
 const BASE_ID = "app1fk9xNGcMnVZnl";
 const TABLE_ID = "tblmxNYPcMKjK8bST"; // "Access Protocol Leads"
@@ -24,6 +25,8 @@ module.exports = async function handler(req, res) {
   const band = body.band || "";
   const total = Number(body.total) || 0;
   const breakdown = body.breakdown || {};
+  const strengths = Array.isArray(body.strengths) ? body.strengths : [];
+  const opportunities = Array.isArray(body.opportunities) ? body.opportunities : [];
 
   if (!domain) {
     res.status(400).json({ ok: false, error: "missing_domain" });
@@ -40,5 +43,12 @@ module.exports = async function handler(req, res) {
   if (email) fields.Email = email;
 
   const result = await createRecord(BASE_ID, TABLE_ID, fields);
-  res.status(result.ok ? 200 : 500).json(result);
+
+  let emailSent = false;
+  if (email && result.ok) {
+    const emailResult = await sendReportEmail({ to: email, domain, band, total, strengths, opportunities });
+    emailSent = Boolean(emailResult.ok);
+  }
+
+  res.status(result.ok ? 200 : 500).json({ ...result, emailSent });
 };

@@ -591,10 +591,17 @@ async function handleEmailCapture() {
         band: lastResult.band,
         total: lastResult.total,
         breakdown: lastResult.breakdown,
+        strengths: lastResult.strengths,
+        opportunities: lastResult.opportunities,
       }),
     });
     if (!res.ok) throw new Error('lead endpoint responded ' + res.status);
-    document.getElementById('emailSentNote').classList.add('show');
+    const data = await res.json();
+    const note = document.getElementById('emailSentNote');
+    note.querySelector('span').textContent = data.emailSent
+      ? 'Sent. Check your inbox.'
+      : "Saved. We'll be in touch if it's useful.";
+    note.classList.add('show');
     gtag('event', 'access_protocol_email_captured');
     document.getElementById('emailCaptureBlock').style.opacity = '.6';
   } catch (e) {

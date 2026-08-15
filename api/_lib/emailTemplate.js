@@ -11,7 +11,7 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
-function renderEmailHtml({ heading, paragraphs = [], primaryCta, links = [], signatureLines = [] }) {
+function renderEmailHtml({ heading, paragraphs = [], listSections = [], primaryCta, links = [], signatureLines = [] }) {
   const paragraphsHtml = paragraphs
     .map(
       (p) =>
@@ -19,6 +19,23 @@ function renderEmailHtml({ heading, paragraphs = [], primaryCta, links = [], sig
           p
         )}</p>`
     )
+    .join("\n");
+
+  const listSectionsHtml = listSections
+    .map((section) => {
+      const items = (section.items || [])
+        .map(
+          (item) =>
+            `<p style="margin:0 0 10px;font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#333333;">&#8226;&nbsp;&nbsp;${escapeHtml(
+              item
+            )}</p>`
+        )
+        .join("\n");
+      return `<p style="margin:20px 0 10px;font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">${escapeHtml(
+        section.title
+      )}</p>
+      ${items}`;
+    })
     .join("\n");
 
   const ctaHtml = primaryCta
@@ -64,6 +81,7 @@ function renderEmailHtml({ heading, paragraphs = [], primaryCta, links = [], sig
     heading
   )}</h1>
   ${paragraphsHtml}
+  ${listSectionsHtml}
   ${ctaHtml}
   ${linksHtml}
   <div style="height:1px;background:#eaeaea;margin:24px 0;"></div>
