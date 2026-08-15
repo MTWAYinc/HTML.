@@ -2,6 +2,10 @@
   "functions": {
     "api/score.js": { "maxDuration": 20 },
     "api/lead.js": { "maxDuration": 10 },
-    "api/submit-form.js": { "maxDuration": 10 }
+    "api/submit-form.js": { "maxDuration": 10 },
+    "api/cal-webhook.js": { "maxDuration": 20 },
+    "api/cron-tick.js": { "maxDuration": 30 },
+    "api/showup-intake.js": { "maxDuration": 10 },
+    "api/showup-upload.js": { "maxDuration": 15 }
   }
 }

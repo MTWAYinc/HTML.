@@ -20,3 +20,39 @@ paying clients isn't worth the cost yet.
 **Resolution:** upgrade to Vercel Pro (~$20/month) as soon as revenue starts
 coming in from MTWAY CLUB memberships. This isn't scoped to any one page, it
 applies to the whole Vercel project.
+
+## ShowUpClub pre-call intake collects lead PII with no automated retention
+
+**Status:** open, accepted for now. Logged 2026-08-15.
+
+ShowUpClub's pre-call page (`showup-prep.html`) lets a lead who booked a call
+with Taha submit, before the meeting: their name and email (also received
+separately from the cal.com booking itself), free-text answers to three
+short business-context questions, and optionally uploaded files (decks,
+campaign/ad reports).
+
+**Where it's stored:**
+- Free-text answers + file links: Airtable, table `ShowUp Intake`, same base
+  as `Access Protocol Leads` and the Form.html contact table.
+- The files themselves: Vercel Blob. URLs are unlisted/unguessable but not
+  access-controlled — anyone with the exact URL could view a file.
+- Booking/meeting state (name, email, meeting time, agendada/reagendada/
+  cancelada status): a new Supabase table, `showup_bookings`.
+
+**Retention:** the intake text and files are meant to be useful only in the
+window before that one specific call ("solo útil antes de esa reunión
+puntual" per the spec), so the intent is to keep them no more than **30 days
+after the meeting date**. As of this writing there is **no automated
+deletion job** — this is a stated intent, not an enforced guarantee, until
+an actual cleanup cron gets built. Booking-state rows in Supabase are kept
+indefinitely, since they feed the show-up-rate / reschedule-vs-cancel
+metrics the spec calls for.
+
+**Why we're accepting this for now:** same posture as the Vercel Hobby-plan
+risk above — pre-revenue, in validation, no full privacy-policy apparatus
+built yet. This entry exists so the gap is a known, tracked decision rather
+than a blind spot.
+
+**Resolution:** build an automated cleanup job once volume makes manual
+awareness impractical, and/or write a real privacy policy once the business
+has paying clients and a legal review budget.

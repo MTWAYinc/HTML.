@@ -2,6 +2,10 @@
   "name": "mtway-site",
   "private": true,
   "dependencies": {
-    "cheerio": "^1.0.0"
+    "cheerio": "^1.0.0",
+    "nodemailer": "^9.0.5",
+    "@supabase/supabase-js": "^2.45.0",
+    "@vercel/blob": "^2.8.0",
+    "raw-body": "^2.5.2"
   }
 }
