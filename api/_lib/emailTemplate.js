@@ -56,7 +56,10 @@ function renderEmailHtml({ heading, paragraphs = [], primaryCta, links = [], sig
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:#ffffff;">
 <tr><td style="padding:32px 36px 8px;">
-  <div style="font-family:Helvetica,Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:3px;text-transform:uppercase;color:#999999;margin-bottom:20px;">MTWAY CLUB</div>
+  <div style="margin-bottom:20px;">
+    <img src="https://mtwayinc.com/mtway-shield.jpg" width="18" height="17" alt="MTWAY" style="vertical-align:middle;border:0;margin-right:8px;">
+    <span style="font-family:Helvetica,Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:3px;text-transform:uppercase;color:#999999;vertical-align:middle;">MTWAY CLUB</span>
+  </div>
   <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:normal;color:#111111;">${escapeHtml(
     heading
   )}</h1>
