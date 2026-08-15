@@ -21,10 +21,10 @@ function getTransporter() {
   return transporter;
 }
 
-async function sendMail({ to, subject, text }) {
+async function sendMail({ to, subject, text, html }) {
   const from = process.env.SMTP_USER_INFO;
   try {
-    const info = await getTransporter().sendMail({ from, to, subject, text });
+    const info = await getTransporter().sendMail({ from, to, subject, text, html });
     return { ok: true, messageId: info.messageId };
   } catch (err) {
     return { ok: false, error: String(err) };
