@@ -235,8 +235,17 @@ nav.scrolled {
 .result-list li::before { content: ''; position: absolute; left: 0; top: 7px; width: 6px; height: 6px; background: var(--chrome); }
 
 .email-note { font-family: var(--sans); font-size: 11px; font-weight: 300; color: rgba(230,230,230,.85); line-height: 1.7; margin-bottom: 20px; }
-.email-sent-note { font-family: var(--sans); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(200,220,200,.85); text-align: center; margin-top: 12px; display: none; }
-.email-sent-note.show { display: block; }
+.email-sent-note {
+  display: none; align-items: center; justify-content: center; gap: 12px;
+  margin-top: 20px; padding: 16px; border: 1px solid rgba(16,185,129,.35); background: rgba(16,185,129,.08);
+  font-family: var(--sans); font-size: 11.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: #34d399;
+}
+.email-sent-note.show { display: flex; }
+.email-sent-icon {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid #10b981;
+  background: rgba(16,185,129,.18); display: flex; align-items: center; justify-content: center; color: #34d399;
+}
+.email-sent-icon svg { width: 14px; height: 14px; }
 
 footer { padding: 40px 60px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid rgba(255,255,255,.04); }
 .ft-brand { display: flex; align-items: center; gap: 12px; }
@@ -382,7 +391,14 @@ footer { padding: 40px 60px; display: flex; align-items: center; justify-content
         <button class="btn-secondary-outline" id="emailBtn" onclick="handleEmailCapture()" style="margin-bottom:8px;">
           <span>Email Me This Report</span>
         </button>
-        <p class="email-sent-note" id="emailSentNote">Saved. We'll be in touch if it's useful.</p>
+        <div class="email-sent-note" id="emailSentNote">
+          <div class="email-sent-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <span>Saved. We'll be in touch if it's useful.</span>
+        </div>
       </div>
 
       <div class="form-divider"></div>
