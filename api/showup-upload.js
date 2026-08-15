@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
       onBeforeGenerateToken: async () => ({
         allowedContentTypes: ALLOWED_CONTENT_TYPES,
         addRandomSuffix: true,
-        maximumSizeInBytes: 100 * 1024 * 1024,
+        maximumSizeInBytes: 30 * 1024 * 1024,
       }),
       onUploadCompleted: async () => {},
     });
