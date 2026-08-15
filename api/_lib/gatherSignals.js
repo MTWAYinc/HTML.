@@ -4,8 +4,14 @@ const scraping = require("./scraping");
 const metaAds = require("./metaAds");
 const { defaultSignals } = require("./models");
 
-async function gatherSignals(baseUrl, domain, token) {
-  const s = defaultSignals(domain);
+// Accepts an optional externally-created signals object (`s`) that the
+// caller keeps a reference to. This lets a caller enforce an overall time
+// budget via Promise.race without losing everything gathered so far: since
+// `s` is mutated in place as each step completes, whatever's already been
+// written is still there even if the race times out before this function
+// returns. See api/score.js for how the budget/race actually uses this.
+async function gatherSignals(baseUrl, domain, token, s) {
+  s = s || defaultSignals(domain);
 
   const { html: homeHtml, $: home$ } = await scraping.getSoup(baseUrl);
   if (!home$) s.scrapeNotes.push("no se pudo obtener la home del sitio");

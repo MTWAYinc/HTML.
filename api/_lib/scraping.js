@@ -15,7 +15,7 @@ const CONTRACTOR_WORDS = /\b(agency|freelance|freelancer|consultant|contractor)\
 const DROPSHIP_WORDS = /\b(dropship(ping)?|print[- ]on[- ]demand|fulfilled by|third[- ]party seller)\b/i;
 
 const CATEGORY_KEYWORDS = {
-  Clothing: ["dress", "dresses", "outerwear", "apparel", "jacket", "denim", "sweater", "t-shirt", "shirt", "pants", "activewear", "loungewear"],
+  Clothing: ["dress", "dresses", "outerwear", "apparel", "jacket", "denim", "sweater", "t-shirt", "shirt", "pants", "activewear", "loungewear", "bra", "bras", "bralette", "bralettes", "underwear", "lingerie", "panty", "panties", "bodysuit", "bodysuits", "thong", "briefs", "intimates", "camisole", "shapewear"],
   Skincare: ["serum", "moisturizer", "cleanser", "skincare", "spf", "sunscreen", "toner", "retinol", "exfoliant"],
   Jewelry: ["ring", "rings", "necklace", "necklaces", "earring", "earrings", "bracelet", "jewelry", "jewellery", "pendant"],
   Cosmetics: ["foundation", "lipstick", "mascara", "eyeshadow", "makeup", "cosmetics", "blush", "concealer", "lip gloss"],
@@ -379,15 +379,23 @@ function findEmail(about$, home$) {
   return null;
 }
 
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Word-boundary matching, not plain substring counting. Plain substring
+// counting made short keywords like "ring" match inside completely unrelated
+// words (buying, during, wearing, string, covering, featuring), which
+// misclassified apparel/lingerie sites as Jewelry any time their copy said
+// something as ordinary as "designed for everyday wearing" or mentioned a
+// "g-string". \b already treats a hyphen as a boundary, so "g-string" still
+// doesn't spuriously match "ring" (the boundary falls at "g-" / "string",
+// not inside "string" itself).
 function countOccurrences(haystack, needle) {
   if (!needle) return 0;
-  let count = 0;
-  let pos = 0;
-  while ((pos = haystack.indexOf(needle, pos)) !== -1) {
-    count++;
-    pos += needle.length;
-  }
-  return count;
+  const re = new RegExp(`\\b${escapeRegex(needle)}\\b`, "g");
+  const matches = haystack.match(re);
+  return matches ? matches.length : 0;
 }
 
 function guessCategory($) {

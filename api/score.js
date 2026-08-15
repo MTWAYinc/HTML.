@@ -4,9 +4,12 @@ const { defaultSignals } = require("./_lib/models");
 const scoring = require("./_lib/scoring");
 const { buildPublicCopy } = require("./_lib/publicCopy");
 
-// Internal wall-clock budget, kept well under vercel.json's maxDuration (20s)
-// so there's headroom to still respond after hitting this cutoff.
-const GATHER_BUDGET_MS = 8000;
+// Internal wall-clock budget, kept under vercel.json's maxDuration (20s) so
+// there's headroom to still respond after hitting this cutoff. Real sites
+// with several About/Team page candidates to try (getAboutTeamHtml) can
+// comfortably take 9-10s; 8s was cutting that off before it even reached
+// category guessing, silently discarding a perfectly good result.
+const GATHER_BUDGET_MS = 18000;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -42,21 +45,25 @@ module.exports = async function handler(req, res) {
   const baseUrl = `${parsed.protocol}//${parsed.hostname}`;
   const token = process.env.META_AD_LIBRARY_TOKEN || null;
 
-  let signals = null;
+  // Created here (not inside gatherSignals) so it survives the race below:
+  // gatherSignals mutates this same object as it goes, so even if the race
+  // times out before it returns, whatever was already written (catalog size,
+  // category guess, reviews, etc.) is still on `signals` — degrading no
+  // longer means throwing away real, already-computed results.
+  const signals = defaultSignals(domain);
   let degraded = false;
   try {
-    signals = await Promise.race([
-      gatherSignals(baseUrl, domain, token),
-      new Promise((resolve) => setTimeout(() => resolve(null), GATHER_BUDGET_MS)),
+    const completed = await Promise.race([
+      gatherSignals(baseUrl, domain, token, signals).then(() => true),
+      new Promise((resolve) => setTimeout(() => resolve(false), GATHER_BUDGET_MS)),
     ]);
+    if (!completed) {
+      degraded = true;
+      signals.scrapeNotes.push("se alcanzo el presupuesto de tiempo antes de terminar de recolectar todas las senales (se uso lo que si se pudo recolectar)");
+    }
   } catch {
-    signals = null;
-  }
-
-  if (signals === null) {
     degraded = true;
-    signals = defaultSignals(domain);
-    signals.scrapeNotes.push("se alcanzo el presupuesto de tiempo antes de terminar de recolectar senales");
+    signals.scrapeNotes.push("error durante la recoleccion de senales (se uso lo que si se pudo recolectar)");
   }
 
   const breakdown = scoring.scoreAll(signals);
