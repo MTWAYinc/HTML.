@@ -21,21 +21,27 @@ function verifySignature(rawBody, headerSignature) {
   return crypto.timingSafeEqual(headerBuf, expectedBuf);
 }
 
-// cal.com's exact payload shape wasn't verified against a live event before
-// build time (see the plan's caveat on this). These helpers isolate the
-// guesswork so a field-name fix is a one-line change once a real payload
-// has been logged and inspected.
+// Both patterns below were confirmed against a real cal.com confirmation
+// email for this exact event type (Cal Video), not guessed.
 function resolveCallLink(uid, payload) {
-  // Confirmed against a real webhook payload: payload.location is often an
-  // internal identifier like "integrations:daily", not a URL. Only trust it
-  // when it's actually a link; otherwise send people to the booking page,
-  // which always shows a working "Join" button regardless of location type.
   const location = payload?.location;
   const isRealUrl = typeof location === "string" && /^https?:\/\//i.test(location);
-  return payload?.videoCallData?.url || (isRealUrl ? location : null) || `https://cal.com/booking/${uid}`;
+  if (payload?.videoCallData?.url) return payload.videoCallData.url;
+  if (isRealUrl) return location;
+  // Cal Video bookings carry "integrations:daily" as the location, not a
+  // URL. The real join link cal.com itself sends is app.cal.com/video/{uid}.
+  if (location === "integrations:daily") return `https://app.cal.com/video/${uid}`;
+  return `https://cal.com/booking/${uid}`;
 }
-function resolveRescheduleLink(uid) {
-  return `https://cal.com/reschedule/${uid}`;
+function resolveRescheduleLink(uid, payload) {
+  const bookerUrl = payload?.bookerUrl || "https://cal.com";
+  const username = payload?.organizer?.username;
+  const eventSlug = payload?.type;
+  const base =
+    username && eventSlug
+      ? `${bookerUrl}/${username}/${eventSlug}`
+      : process.env.CAL_ELITE_BRANDS_LINK || "https://cal.com/mtway.inc/elite-brands";
+  return `${base}?rescheduleUid=${encodeURIComponent(uid)}`;
 }
 function resolveAttendee(payload) {
   const a = (payload?.attendees || [])[0] || {};
@@ -91,7 +97,7 @@ module.exports = async function handler(req, res) {
   const attendee = resolveAttendee(payload);
   const meetingTime = payload.startTime;
   const callLink = resolveCallLink(uid, payload);
-  const rescheduleLink = resolveRescheduleLink(uid);
+  const rescheduleLink = resolveRescheduleLink(uid, payload);
 
   try {
     if (triggerEvent === "BOOKING_CREATED") {
