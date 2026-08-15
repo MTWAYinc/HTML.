@@ -1,8 +1,8 @@
 // Mints short-lived client-upload tokens so the browser on showup-prep.html
 // can upload directly to Vercel Blob, bypassing the ~4.5MB body limit on
-// serverless functions. Auth is transparent here: @vercel/blob picks up the
-// project's BLOB_STORE_ID + automatic OIDC token from the environment, no
-// BLOB_READ_WRITE_TOKEN needed.
+// serverless functions. Auth via BLOB_READ_WRITE_TOKEN (set on the Vercel
+// project) — the BLOB_STORE_ID/OIDC-only auth this originally assumed
+// doesn't actually work for this project's setup, confirmed in testing.
 const { handleUpload } = require("@vercel/blob/client");
 
 const ALLOWED_CONTENT_TYPES = [
@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
       onBeforeGenerateToken: async () => ({
         allowedContentTypes: ALLOWED_CONTENT_TYPES,
         addRandomSuffix: true,
-        maximumSizeInBytes: 25 * 1024 * 1024,
+        maximumSizeInBytes: 100 * 1024 * 1024,
       }),
       onUploadCompleted: async () => {},
     });
