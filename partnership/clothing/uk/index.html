@@ -270,6 +270,9 @@ footer { border-top:1px solid rgba(255,255,255,.05); padding:52px 60px; display:
   .fit-grid { grid-template-columns:1fr; }
   .rt-head { display:none; }
   .rt-row { grid-template-columns:1fr; gap:8px; text-align:center; }
+  .rt-row > div:nth-child(2)::before { content:"Investment"; display:block; font-family:var(--sans); font-size:9px; font-weight:500; letter-spacing:.2em; text-transform:uppercase; color:var(--silver-dark); margin-bottom:8px; }
+  .rt-row > div:nth-child(3)::before { content:"Revenue Generated"; display:block; font-family:var(--sans); font-size:9px; font-weight:500; letter-spacing:.2em; text-transform:uppercase; color:var(--silver-dark); margin-bottom:8px; }
+  .rt-roi::before { content:"ROAS"; display:block; font-family:var(--sans); font-size:9px; font-weight:500; letter-spacing:.2em; text-transform:uppercase; color:var(--silver-dark); margin-bottom:8px; }
   footer { flex-direction:column; text-align:center; }
   .s-inner { padding:84px 22px; }
   .cta-inner { padding:110px 22px; }
