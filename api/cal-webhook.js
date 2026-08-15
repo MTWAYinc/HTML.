@@ -26,7 +26,13 @@ function verifySignature(rawBody, headerSignature) {
 // guesswork so a field-name fix is a one-line change once a real payload
 // has been logged and inspected.
 function resolveCallLink(uid, payload) {
-  return payload?.videoCallData?.url || payload?.location || `https://cal.com/booking/${uid}`;
+  // Confirmed against a real webhook payload: payload.location is often an
+  // internal identifier like "integrations:daily", not a URL. Only trust it
+  // when it's actually a link; otherwise send people to the booking page,
+  // which always shows a working "Join" button regardless of location type.
+  const location = payload?.location;
+  const isRealUrl = typeof location === "string" && /^https?:\/\//i.test(location);
+  return payload?.videoCallData?.url || (isRealUrl ? location : null) || `https://cal.com/booking/${uid}`;
 }
 function resolveRescheduleLink(uid) {
   return `https://cal.com/reschedule/${uid}`;
@@ -108,7 +114,10 @@ module.exports = async function handler(req, res) {
         rescheduleLink,
         prepLink: prepLink(uid, attendee.name, attendee.email),
       });
-      if (attendee.email) await sendMail({ to: attendee.email, ...email });
+      if (attendee.email) {
+        const sendResult = await sendMail({ to: attendee.email, ...email });
+        if (!sendResult.ok) console.error("cal-webhook: confirmation email failed:", sendResult.error);
+      }
     } else if (triggerEvent === "BOOKING_RESCHEDULED") {
       const previousUid = payload.rescheduleUid || payload.fromReschedule || uid;
       await cancelPendingReminders(previousUid);
@@ -141,7 +150,8 @@ module.exports = async function handler(req, res) {
           leadEmail: attendee.email,
           meetingTimeFormatted,
         });
-        await sendMail({ to: notifyTo, ...notice });
+        const sendResult = await sendMail({ to: notifyTo, ...notice });
+        if (!sendResult.ok) console.error("cal-webhook: Sindy notification failed:", sendResult.error);
       }
     }
     res.status(200).json({ ok: true });
