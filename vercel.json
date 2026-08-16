@@ -6,6 +6,7 @@
     "api/cal-webhook.js": { "maxDuration": 20 },
     "api/cron-tick.js": { "maxDuration": 30 },
     "api/showup-intake.js": { "maxDuration": 10 },
-    "api/showup-upload.js": { "maxDuration": 15 }
+    "api/showup-upload.js": { "maxDuration": 15 },
+    "api/fathom-webhook.js": { "maxDuration": 20 }
   }
 }

@@ -56,3 +56,27 @@ than a blind spot.
 **Resolution:** build an automated cleanup job once volume makes manual
 awareness impractical, and/or write a real privacy policy once the business
 has paying clients and a legal review budget.
+
+## ProposalClub stores full call transcripts with no automated retention
+
+**Status:** open, accepted for now. Logged 2026-08-16.
+
+`api/fathom-webhook.js` stores the complete transcript of every discovery
+call (Taha's Fathom account) in Supabase, table `proposalclub_transcripts`.
+These transcripts can include a prospect's business figures shared on the
+call (AOV, ad spend, revenue) along with their name and email.
+
+**Where it's stored:** `proposalclub_transcripts` (raw transcript text plus
+the full webhook payload as `jsonb`) and `proposalclub_proposals` (the
+resulting draft's metadata), same Supabase project as ShowUpClub.
+
+**Retention:** kept indefinitely, no automated deletion job. Rows are the
+only record of what was discussed on the call and feed the eventual
+DeskClub lead history, so unlike ShowUpClub's pre-call intake there's no
+natural "useful only until X" expiry window to apply yet.
+
+**Why we're accepting this for now:** same posture as the other entries
+above — pre-revenue, in validation, no privacy-policy apparatus built yet.
+
+**Resolution:** revisit once DeskClub (the lead dashboard) exists and
+defines a real retention/deletion policy for lead records generally.
