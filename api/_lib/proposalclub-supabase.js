@@ -23,7 +23,7 @@ async function upsertTranscript({
   transcriptText,
   rawPayload,
 }) {
-  const { error } = await getClient()
+  const { data, error } = await getClient()
     .from("proposalclub_transcripts")
     .upsert(
       {
@@ -40,9 +40,11 @@ async function upsertTranscript({
         updated_at: new Date().toISOString(),
       },
       { onConflict: "fathom_recording_id" }
-    );
+    )
+    .select("id")
+    .single();
   if (error) return { ok: false, error: error.message };
-  return { ok: true };
+  return { ok: true, id: data?.id };
 }
 
 async function getLatestPendingTranscript() {

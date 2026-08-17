@@ -5,6 +5,7 @@
 const { getDueReminders, markReminderStatus } = require("./_lib/supabase");
 const { sendMail } = require("./_lib/mailer");
 const { buildReminderEmail } = require("./_lib/showupCopy");
+const { upsertHeartbeat } = require("./_lib/deskclub-supabase");
 
 module.exports = async function handler(req, res) {
   const secret = req.query?.secret || new URL(req.url, "http://x").searchParams.get("secret");
@@ -12,6 +13,14 @@ module.exports = async function handler(req, res) {
     res.status(401).json({ ok: false, error: "invalid_secret" });
     return;
   }
+
+  // DeskClub's "Estado de Agentes" liveness signal for ShowUpClub: this is
+  // the actual ~2min cron-job.org tick, so a stale last_seen_at here means
+  // the external cron stopped hitting this endpoint, not that the agent
+  // itself failed. Awaited (not fire-and-forget): a serverless function can
+  // be frozen/terminated right after the response is sent, which would
+  // silently drop an un-awaited write.
+  await upsertHeartbeat("showupclub").catch(() => {});
 
   const due = await getDueReminders();
   if (!due.ok) {

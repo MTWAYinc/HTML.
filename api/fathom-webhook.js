@@ -15,6 +15,7 @@
 const crypto = require("crypto");
 const getRawBody = require("raw-body");
 const { upsertTranscript } = require("./_lib/proposalclub-supabase");
+const { flagPossibleRealizadaMatch } = require("./_lib/deskclub-supabase");
 
 module.exports.config = { api: { bodyParser: false } };
 
@@ -122,6 +123,19 @@ module.exports = async function handler(req, res) {
       res.status(500).json({ ok: false, error: result.error });
       return;
     }
+
+    // Best-effort and awaited (a serverless function can be frozen right
+    // after the response is sent, silently dropping an un-awaited write) --
+    // but a failure here never turns into a 500: the transcript ingest
+    // itself already succeeded, which is the part Fathom's retry logic
+    // cares about.
+    const recordedAt = payload.recorded_at || payload.created_at || null;
+    if (result.id && lead.email && recordedAt) {
+      await flagPossibleRealizadaMatch({ id: result.id, leadEmail: lead.email, recordedAt }).catch((err) =>
+        console.error("fathom-webhook: flagPossibleRealizadaMatch failed:", err)
+      );
+    }
+
     res.status(200).json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: String(err) });

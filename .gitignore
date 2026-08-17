@@ -12,6 +12,7 @@ sendclub/
 allianceclub/
 partnerclub/
 voiceclub/
+deskclub_sync/
 
 # Real lead data — never belongs in git, public or private
 *.xlsx
