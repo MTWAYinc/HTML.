@@ -21,8 +21,10 @@ function getTransporter() {
   return transporter;
 }
 
+const FROM_DISPLAY_NAME = "MTWAY, INC.";
+
 async function sendMail({ to, subject, text, html }) {
-  const from = process.env.SMTP_USER_INFO;
+  const from = `"${FROM_DISPLAY_NAME}" <${process.env.SMTP_USER_INFO}>`;
   try {
     const info = await getTransporter().sendMail({ from, to, subject, text, html });
     return { ok: true, messageId: info.messageId };
