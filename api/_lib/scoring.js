@@ -116,7 +116,15 @@ function scoreBusinessHealth(s) {
   const flags = [];
   if (s.dropshippingLanguageFound) flags.push("dropshipping detectado");
   if (s.reviewRating !== null && s.reviewRating !== undefined && s.reviewRating < 4.0) flags.push("reviews < 4.0");
-  if (!Object.values(s.metaAdsByCountry).some((v) => v === true)) flags.push("sin evidencia de ads");
+  // Solo cuenta como red flag si realmente se pudo consultar la Ad Library
+  // (al menos un pais con resultado real, no null) y no se encontraron ads.
+  // Sin esto, "no sabemos" (token ausente/consulta fallida) se penalizaba
+  // igual que "consultamos y no tiene ads" -- ausencia de evidencia no es
+  // evidencia de ausencia.
+  const adsValues = Object.values(s.metaAdsByCountry);
+  const adsChecked = adsValues.some((v) => v !== null);
+  const adsActive = adsValues.some((v) => v === true);
+  if (adsChecked && !adsActive) flags.push("sin evidencia de ads");
   if (!s.hasNewsletterSignup) flags.push("sin captura de email/newsletter");
   if (s.categoryGuess === null || s.categoryGuess === undefined) flags.push("category match fallido");
 
