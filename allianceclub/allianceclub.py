@@ -12,7 +12,10 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import sys
 from datetime import datetime
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "voiceclub"))
 
 from ingest_waalaxy_export import (
     DEFAULT_ACCEPTED_VALUES,
@@ -22,7 +25,7 @@ from ingest_waalaxy_export import (
     run_ingest,
 )
 from prepare_batch import run_prepare
-from report import compute_variant_report, format_report
+from report import compute_variant_report, compute_tone_report, format_report, format_tone_report
 
 DEFAULT_NUEVOS_LEADS = "../scoutclub_nuevos_leads_template.xlsx"
 DEFAULT_REFERENCIA = "../scoutclub_referencia_522.xlsx"
@@ -137,6 +140,10 @@ def cmd_report(args: argparse.Namespace) -> None:
     stats = compute_variant_report(args.dedup_store)
     print("\n=== Reporte AllianceClub - variantes de CTA ===")
     print(format_report(stats))
+
+    tone_stats = compute_tone_report(args.dedup_store)
+    print("\n=== Reporte AllianceClub - tono (VoiceClub: club vs advisory) ===")
+    print(format_tone_report(tone_stats))
 
 
 def main() -> None:

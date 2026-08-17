@@ -45,13 +45,25 @@ class Hook:
 
 
 @dataclass
+class MessageResult:
+    """Salida de message.py::build_message: el mensaje final ya armado mas
+    toda la metadata de variantes que hay que persistir en el dedup store."""
+
+    message: str
+    hook: Hook
+    cta_variant_id: str = ""  # A/B de fraseo del CTA de llamada con Taha, ver message.py
+    tone_variant_id: str = ""  # "club" | "advisory" de VoiceClub, ver voiceclub/tone.py
+
+
+@dataclass
 class BatchLead:
     """Un AllianceLead ya con gancho y mensaje armados, listo para revision."""
 
     lead: AllianceLead
     hook: Hook
     message: str
-    cta_variant_id: str = ""  # para el A/B testing de tono, ver message.py
+    cta_variant_id: str = ""  # A/B de fraseo del CTA de llamada con Taha, ver message.py
+    tone_variant_id: str = ""  # "club" | "advisory" de VoiceClub, ver voiceclub/tone.py
     # Reservado para cuando ShowUpClub conecte el booking real de Taha (nunca de
     # Sindy). Vacio hasta entonces.
     call_link: str = ""

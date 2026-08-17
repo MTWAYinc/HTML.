@@ -10,12 +10,13 @@ from dataclasses import dataclass
 
 import openpyxl
 
+import tone as voice_tone
 from dedup_store import DedupStore
-from hooks import build_hook
 from lead_sources import load_all_candidates, normalize_linkedin_url
 from message import TAHA_CALENDAR_LINK, build_message
 from models import BatchLead
 from quota import QuotaLog
+from scraping_lite import find_flagship_product_title
 
 REVIEW_HEADERS = [
     "Company Name",
@@ -28,6 +29,7 @@ REVIEW_HEADERS = [
     "Confianza gancho",
     "Mensaje completo",
     "CTA Variant",
+    "Tone",
     "Call Link (Taha)",
 ]
 
@@ -97,24 +99,27 @@ def run_prepare(
 
     batch: list[BatchLead] = []
     for lead in to_send:
-        hook = build_hook(lead)
-        msg, cta_variant_id = build_message(lead, hook)
+        product_title = find_flagship_product_title(lead.website) or ""
+        tone = voice_tone.assign_tone(lead.linkedin_url)
+        result = build_message(lead, product_title, tone)
         batch.append(
             BatchLead(
                 lead=lead,
-                hook=hook,
-                message=msg,
-                cta_variant_id=cta_variant_id,
+                hook=result.hook,
+                message=result.message,
+                cta_variant_id=result.cta_variant_id,
+                tone_variant_id=result.tone_variant_id,
                 call_link=TAHA_CALENDAR_LINK,
             )
         )
         logger.info(
-            "Gancho %s (%s) para %s: %s | CTA variant: %s",
-            hook.confidence,
-            hook.basis,
+            "Gancho %s (%s) para %s: %s | CTA variant: %s | tono: %s",
+            result.hook.confidence,
+            result.hook.basis,
             lead.company_name,
-            hook.text,
-            cta_variant_id,
+            result.hook.text,
+            result.cta_variant_id,
+            result.tone_variant_id,
         )
 
     review_path = None
@@ -134,6 +139,7 @@ def run_prepare(
                 company_name=bl.lead.company_name,
                 hook_confidence=bl.hook.confidence,
                 cta_variant_id=bl.cta_variant_id,
+                tone_variant_id=bl.tone_variant_id,
             )
         quota.record_batch(len(batch))
 
@@ -169,6 +175,7 @@ def _write_review_excel(batch: list[BatchLead], path: str) -> None:
                 bl.hook.confidence,
                 bl.message,
                 bl.cta_variant_id,
+                bl.tone_variant_id,
                 bl.call_link,
             ]
         )

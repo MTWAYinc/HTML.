@@ -10,6 +10,8 @@ node_modules/
 scoutclub/
 sendclub/
 allianceclub/
+partnerclub/
+voiceclub/
 
 # Real lead data — never belongs in git, public or private
 *.xlsx
